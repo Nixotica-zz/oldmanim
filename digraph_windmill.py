@@ -350,7 +350,7 @@ class S3CompleteWindmill(WindmillScene):
 
         dots = self.get_dots(points)
         windmill = self.get_windmill(points, sorted_points[0], angle=PI / 4)
-        windmill2 = self.get_windmill(points, sorted_points[0], angle=3*PI/4)
+        windmill2 = self.get_windmill(points, sorted_points[0], angle=PI / 2)
         pivot_dot = self.get_pivot_dot(windmill)
         # self.add_dot_color_updater(dots, windmill)
 
@@ -362,3 +362,93 @@ class S3CompleteWindmill(WindmillScene):
         windmills = [windmill, windmill2]
 
         self.let_windmills_run(windmills, self.run_time)
+
+class S3HullWindmill(WindmillScene):
+    CONFIG = {
+        "n_points": 3,
+        "run_time": 30,
+        "random_seed": 0,
+        "draw_arrows": True
+    }
+
+    def construct(self):
+        points = np.array([[0, 3, 0], [-3, -3, 0], [3, -3, 0]])
+        sorted_points = sorted(list(points), key=lambda p: p[1])
+
+        dots = self.get_dots(points)
+        windmill = self.get_windmill(points, sorted_points[0], angle=PI / 2)
+        pivot_dot = self.get_pivot_dot(windmill)
+
+        self.add(windmill)
+        self.add(dots)
+        self.add(pivot_dot)
+
+        self.let_windmill_run(windmill, self.run_time)
+
+class S3InnerWindmill(WindmillScene):
+    CONFIG = {
+        "n_points": 3,
+        "run_time": 30,
+        "random_seed": 0,
+        "draw_arrows": True
+    }
+
+    def construct(self):
+        points = np.array([[0, 3, 0], [-3, -3, 0], [3, -3, 0]])
+        sorted_points = sorted(list(points), key=lambda p: p[1])
+
+        dots = self.get_dots(points)
+        windmill = self.get_windmill(points, sorted_points[0], angle=PI / 4)
+        pivot_dot = self.get_pivot_dot(windmill)
+
+        self.add(windmill)
+        self.add(dots)
+        self.add(pivot_dot)
+
+        self.let_windmill_run(windmill, self.run_time)
+
+class WindmillExample(WindmillScene):
+    CONFIG = {
+        "n_points": 10,
+        "random_seed": 0,
+        "run_time": 30
+    }
+
+    def construct(self):
+        points = self.get_random_point_set(self.n_points)
+        points[:, 0] *= 1.5
+        sorted_points = sorted(list(points), key=lambda p: p[1])
+        sorted_points[4] += RIGHT
+
+        dots = self.get_dots(points)
+        windmill = self.get_windmill(points, sorted_points[5], angle=PI / 4)
+        windmill_label = TextMobject("$\ell$")
+        windmill_label.shift(LEFT+DOWN*0.7)
+
+        pivot_dot = self.get_pivot_dot(windmill)
+        pivot_label = TextMobject("$P$")
+        pivot_label.next_to(pivot_dot)
+
+        self.add(windmill)
+        self.add(dots)
+        self.add(pivot_dot)
+
+        S_label = TextMobject("$S$")
+        S_label.scale(2)
+        S_label.to_corner(corner = UP + RIGHT)
+        S_label.shift(LEFT*0.5)
+
+        border = [(-5, -3.5, 0),
+                  (-5, 3.5, 0),
+                  (5, 3.5, 0),
+                  (5, -3.5, 0)]
+
+        S_box = Polygon(*border, color=GREEN)
+
+        self.play(Write(windmill_label))
+        self.play(Write(pivot_label))
+        self.play(ShowCreation(S_box))
+        self.play(Write(S_label))
+        self.play(FadeOut(windmill_label))
+
+        self.let_windmill_run(windmill, self.run_time)
