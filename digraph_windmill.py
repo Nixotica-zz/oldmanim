@@ -13,6 +13,22 @@ class Nixotica(Scene):
         left.next_to(name, direction = LEFT)
         right.next_to(name, direction = RIGHT)
         self.play(Write(left), Write(right))
+        self.wait(3)
+        self.play(FadeOut(name), FadeOut(left), FadeOut(right))
+
+class ProposeTheorem(Scene):
+    def construct(self):
+        top = TextMobject("Does there exist an initial pivot point $P$")
+        mid = TextMobject("in $S$ such that the union of all possible cycles")
+        bot = TextMobject("starting from $P$ result in a completed digraph?")
+
+        top.shift(UP)
+        mid.next_to(top, direction=DOWN)
+        bot.next_to(mid, direction=DOWN)
+
+        self.play(Write(top))
+        self.play(Write(mid))
+        self.play(Write(bot))
 
 class S3Complete(GraphScene):
     def construct(self):
@@ -452,3 +468,68 @@ class WindmillExample(WindmillScene):
         self.play(FadeOut(windmill_label))
 
         self.let_windmill_run(windmill, self.run_time)
+
+class WindmillExample30Points(WindmillScene):
+    CONFIG = {
+        "n_points": 30,
+        "random_seed": 0,
+        "run_time": 30
+    }
+
+    def construct(self):
+        points = self.get_random_point_set(self.n_points)
+        points[:, 0] *= 1.5
+        sorted_points = sorted(list(points), key=lambda p: p[1])
+        sorted_points[4] += RIGHT
+
+        dots = self.get_dots(points)
+        windmill = self.get_windmill(points, sorted_points[5], angle=PI / 4)
+        pivot_dot = self.get_pivot_dot(windmill)
+
+        self.add(windmill)
+        self.add(dots)
+        self.add(pivot_dot)
+
+        self.let_windmill_run(windmill, self.run_time)
+
+class SetupS3(WindmillScene):
+    CONFIG = {
+        "n_points": 3,
+        "windmill_rotation_speed": 0.5,
+        "draw_arrows": True
+    } 
+
+    def construct(self):
+        points = np.array([[0, 3, 0], [-3, -3, 0], [3, -3, 0]])
+        sorted_points = sorted(list(points), key=lambda p: p[1])
+
+        dots = self.get_dots(points)
+        windmill = self.get_windmill(points, sorted_points[0], angle=PI/2)
+        pivot_dot = self.get_pivot_dot(windmill)
+
+        for dot in dots:
+            self.play(ShowCreation(dot))
+
+        pivot_label = TextMobject("$P$")
+        pivot_label.next_to(pivot_dot)
+        self.play(Write(pivot_label))
+
+        self.play(ShowCreation(windmill))
+
+        self.play(Rotate(windmill, angle=-1*PI/4))
+
+        self.wait()
+        
+        self.play(Rotate(windmill, angle=-1*(PI/4+PI/32)))
+
+        self.wait()
+
+        self.play(Rotate(windmill, angle=-1*(PI-(PI/4+PI/4+PI/32))))
+
+        self.wait()
+
+        self.add(windmill)
+        self.add(dots)
+        self.add(pivot_dot)
+
+        #self.let_windmill_run(windmill, 10)
