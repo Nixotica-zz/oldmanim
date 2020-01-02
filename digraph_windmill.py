@@ -1,5 +1,7 @@
 from manimlib.imports import *
 
+from sys import maxsize
+
 class Nixotica(Scene):
     def construct(self):
         name = TextMobject("Nixotica")
@@ -239,6 +241,19 @@ class WindmillScene(Scene):
             time -= last_run_time
             # curr_time = self.get_time()
 
+    def let_windmill_run_angle(self, windmill, angle=2*PI):
+        anims_from_last_hit = []
+        tot_angle = 0
+        while tot_angle < angle:
+            first_angle = windmill.get_angle()
+            anims_from_last_hit, last_run_time = self.rotate_to_next_pivot(
+                windmill,
+                max_time=maxsize,
+                added_anims=anims_from_last_hit,
+            )
+            second_angle = windmill.get_angle()
+            tot_angle += abs(second_angle - first_angle)
+
     def let_windmills_run(self, windmills, time):
         anims_from_last_hit = []
         while time > 0:
@@ -249,6 +264,7 @@ class WindmillScene(Scene):
                     added_anims=anims_from_last_hit,
             )
             time -= last_run_time
+    
     def add_dot_color_updater(self, dots, windmill, **kwargs):
         for dot in dots:
             dot.add_updater(lambda d: self.update_dot_color(
@@ -533,3 +549,74 @@ class SetupS3(WindmillScene):
         self.add(pivot_dot)
 
         #self.let_windmill_run(windmill, 10)
+
+class TwoConfigurations(Scene):
+    def construct(self):
+        threepoints = TextMobject("3 points")
+        onepivot = TextMobject("1 pivot")
+        line = Line(start=LEFT, end=RIGHT)
+        twoconfig = TextMobject("2 configurations")
+        
+        onepivot.next_to(threepoints, direction=DOWN)
+        line.next_to(onepivot, direction=DOWN)
+        twoconfig.next_to(line, direction=DOWN)
+
+        self.play(Write(threepoints))
+        self.play(Write(onepivot))
+        self.play(ShowCreation(line))
+        self.play(Write(twoconfig))
+
+class ArbitraryConvexHull(WindmillScene):
+    CONFIG = {
+        "n_points": 6,
+        "random_seed": 2020,
+        "run_time": 30,
+        "windmill_rotation_speed": 0.5,
+        "draw_arrows": True
+    }
+
+    def construct(self):
+        points = np.array(
+                 [[-4, 2, 0],
+                  [0, 3, 0],
+                  [2, 3, 0],
+                  [4, 0, 0],
+                  [3, -2, 0],
+                  [-3, -3, 0]])
+        sorted_points = sorted(list(points), key=lambda p: p[1])
+
+        S_label = TextMobject("$S_n$")
+        S_label.scale(2)
+        S_label.to_corner(corner = UP + RIGHT)
+        S_label.shift(LEFT*0.5)
+
+        border = [(-5, -3.5, 0),
+                  (-5, 3.5, 0),
+                  (5, 3.5, 0),
+                  (5, -3.5, 0)]
+
+        S_box = Polygon(*border, color=GREEN)
+
+        self.play(ShowCreation(S_box))
+        self.play(ShowCreation(S_label))
+
+        inner_points = points*0.75
+        inner_hull = Polygon(*inner_points, color=WHITE, fill_color=WHITE, fill_opacity=0.1)
+        self.play(ShowCreation(inner_hull))
+
+        inner_label = TextMobject("$n-n_{hull}$ points")
+        self.play(Write(inner_label))
+
+        dots = self.get_dots(points)
+        windmill = self.get_windmill(points, sorted_points[0], angle=3*PI/4)
+        pivot_dot = self.get_pivot_dot(windmill)
+
+        self.add(windmill)
+        self.add(dots)
+        self.add(pivot_dot)
+
+        pivot_label = TextMobject("$P$")
+        pivot_label.next_to(pivot_dot, direction=RIGHT)
+        self.play(Write(pivot_label))
+
+        self.let_windmill_run(windmill, 13)
