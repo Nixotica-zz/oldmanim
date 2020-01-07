@@ -585,10 +585,17 @@ class ArbitraryConvexHull(WindmillScene):
                   [-3, -3, 0]])
         sorted_points = sorted(list(points), key=lambda p: p[1])
 
+        dots = self.get_dots(points)
+        windmill = self.get_windmill(points, sorted_points[0], angle=3*PI/4)
+        pivot_dot = self.get_pivot_dot(windmill)
+
+        self.add(windmill)
+        self.add(dots)
+        self.add(pivot_dot)
+
         S_label = TextMobject("$S_n$")
         S_label.scale(2)
         S_label.to_corner(corner = UP + RIGHT)
-        S_label.shift(LEFT*0.5)
 
         border = [(-5, -3.5, 0),
                   (-5, 3.5, 0),
@@ -607,16 +614,69 @@ class ArbitraryConvexHull(WindmillScene):
         inner_label = TextMobject("$n-n_{hull}$ points")
         self.play(Write(inner_label))
 
-        dots = self.get_dots(points)
-        windmill = self.get_windmill(points, sorted_points[0], angle=3*PI/4)
-        pivot_dot = self.get_pivot_dot(windmill)
-
-        self.add(windmill)
-        self.add(dots)
-        self.add(pivot_dot)
-
         pivot_label = TextMobject("$P$")
-        pivot_label.next_to(pivot_dot, direction=RIGHT)
+        pivot_label.next_to(pivot_dot, direction=LEFT)
         self.play(Write(pivot_label))
 
         self.let_windmill_run(windmill, 13)
+
+        self.wait(1)
+
+        self.play(FadeOut(inner_hull), FadeOut(inner_label))
+
+        self.wait(1)
+
+        m = TextMobject("$m$")
+        m.next_to(pivot_dot.get_center(), direction=UP)
+        m.shift(LEFT + UP*math.sin(windmill.get_angle()) + RIGHT*math.cos(windmill.get_angle()))
+
+        nminusm = TextMobject("$n-m$")
+        nminusm.next_to(inner_label, direction=UP)
+
+        self.play(Write(m))
+        self.wait(1)
+        self.play(Write(nminusm))
+
+class LOnHull(WindmillScene):
+    def construct(self):
+        points = np.array([[-3, -3, 0]])
+        dots = self.get_dots(points)
+        windmill = self.get_windmill(points, points[0], angle=3*PI/4)
+        pivot_dot = self.get_pivot_dot(windmill)
+
+        S_label = TextMobject("$S_n$")
+        S_label.scale(2)
+        S_label.to_corner(corner = UP + RIGHT)
+
+        border = [(-5, -3.5, 0),
+                  (-5, 3.5, 0),
+                  (5, 3.5, 0),
+                  (5, -3.5, 0)]
+
+        S_box = Polygon(*border, color=GREEN)
+
+        self.play(ShowCreation(S_box))
+        self.play(ShowCreation(S_label))
+
+        pivot_label = TextMobject("$P$")
+        pivot_label.next_to(pivot_dot, direction=LEFT)
+        self.play(ShowCreation(pivot_dot))
+        self.play(Write(pivot_label))
+
+        self.play(ShowCreation(windmill))
+
+        l_label = TextMobject("$\ell$")
+        l_label.next_to(pivot_dot, direction=LEFT)
+        l_label.shift(UP + LEFT)
+        self.play(Write(l_label))
+
+        inner_points = np.array([[-3, -3, 0],
+                                 [-2, 3, 0],
+                                 [1, 2, 0],
+                                 [3, -2, 0],
+                                 [0, -3, 0]])
+        hull = Polygon(*inner_points, color=WHITE, fill_color=WHITE, fill_opacity=0.1)
+        self.play(ShowCreation(hull))
+
+        hull_label = TextMobject("Convex Hull")
+        self.play(Write(hull_label))
