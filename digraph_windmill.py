@@ -640,7 +640,6 @@ class ArbitraryConvexHull(WindmillScene):
 class LOnHull(WindmillScene):
     def construct(self):
         points = np.array([[-3, -3, 0]])
-        dots = self.get_dots(points)
         windmill = self.get_windmill(points, points[0], angle=3*PI/4)
         pivot_dot = self.get_pivot_dot(windmill)
 
@@ -680,3 +679,52 @@ class LOnHull(WindmillScene):
 
         hull_label = TextMobject("Convex Hull")
         self.play(Write(hull_label))
+
+        self.play(FadeOut(pivot_label), FadeOut(hull_label))
+
+        arc = Arc(start_angle=windmill.get_angle(), angle=PI, radius=0.25, arc_center=pivot_dot.get_center())
+        oneeighty = TextMobject("$180^{\circ}$")
+        oneeighty.next_to(pivot_dot, direction=LEFT)
+        self.play(Write(oneeighty), ShowCreation(arc))
+
+        p1 = Point(location=RIGHT*-2+UP*3)
+        p2 = Point(location=UP*-3)
+        l1 = DashedLine(start=pivot_dot.get_center(), end=p1.get_center())
+        l2 = DashedLine(start=pivot_dot.get_center(), end=p2.get_center())
+
+        ang = l1.get_angle() - l2.get_angle()
+        general_ang = TextMobject("$<180^{\circ}$")
+        general_ang.next_to(pivot_dot, direction=UP*0.5+RIGHT)
+        arc2 = Arc(start_angle=l2.get_angle(), angle=ang, radius=0.25, arc_center=pivot_dot.get_center())
+        self.play(Write(general_ang), ShowCreation(arc2))
+
+        self.wait(1)
+
+        self.play(FadeOut(general_ang),
+                  FadeOut(oneeighty),
+                  FadeOut(arc),
+                  FadeOut(arc2),
+                  FadeOut(pivot_dot),
+                  FadeOut(pivot_label),
+                  FadeOut(windmill),
+                  FadeOut(l_label))
+        
+        inner_point = Dot(point=[0, 0, 0], color=YELLOW)
+        inner_label = TextMobject("Inner Pivot").next_to(inner_point, direction=DOWN)
+        self.play(ShowCreation(inner_point), Write(inner_label))
+
+        self.wait(1)
+
+        self.play(FadeOut(inner_label))
+
+        p0 = Point(location=[-3, -3, 0])
+        p1 = Point(location=[1, 2, 0])
+        p2 = Point(location=[0, -3, 0])
+        self.play(ShowCreation(Dot(point=p0.get_center())))
+        self.play(ShowCreation(Dot(point=p1.get_center())))
+        self.play(ShowCreation(Dot(point=p2.get_center())))
+
+        inner_border = np.array([p0.get_center(), p1.get_center(), p2.get_center()])
+        inner_poly = Polygon(*inner_border, color=RED, fill_color=RED, fill_opacity=0.1)
+
+        self.play(ShowCreation(inner_poly))
