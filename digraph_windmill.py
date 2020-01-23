@@ -720,11 +720,27 @@ class LOnHull(WindmillScene):
         p0 = Point(location=[-3, -3, 0])
         p1 = Point(location=[1, 2, 0])
         p2 = Point(location=[0, -3, 0])
-        self.play(ShowCreation(Dot(point=p0.get_center())))
-        self.play(ShowCreation(Dot(point=p1.get_center())))
-        self.play(ShowCreation(Dot(point=p2.get_center())))
 
         inner_border = np.array([p0.get_center(), p1.get_center(), p2.get_center()])
         inner_poly = Polygon(*inner_border, color=RED, fill_color=RED, fill_opacity=0.1)
 
         self.play(ShowCreation(inner_poly))
+
+        windmill = self.get_windmill(points, inner_point, angle=3*PI/4)
+        pivot_dot = self.get_pivot_dot(windmill)
+
+        self.wait(1)
+        self.play(ShowCreation(windmill))
+
+        l_label.next_to(pivot_dot, direction=3*LEFT+UP)
+        self.play(Write(l_label))
+
+        self.wait(1)
+        self.play(FadeOut(l_label), FadeOut(windmill))
+        self.wait(1)
+
+        for i in range(0, len(inner_points)):
+            p0 = inner_points[i-1]*1.1
+            p1 = inner_points[i]*1.1
+            arrow = Arrow(p0, p1, color=RED)
+            self.play(GrowArrow(arrow))
